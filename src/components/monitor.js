@@ -9,7 +9,11 @@ const context = 'Monitor';
 
 module.exports = class Monitor {
     constructor(config) {
-        this.config = config;
+        //HACK
+        this.config = JSON.parse(JSON.stringify(config));
+        this.config.timeout = 1000;
+        this.config.interval = 1000;
+        this.config.restarter.failures = 15;
 
         //Checking config
         if(this.config.interval < 1000){
@@ -34,9 +38,12 @@ module.exports = class Monitor {
             players: []
         }
 
+        saveFailureLog('LOGSTART', '');
+
         //Cron functions
         setInterval(() => {
             this.refreshServerStatus();
+            this.refreshServerStatus_info(); //HACK
         }, this.config.interval);
         if(Array.isArray(this.config.restarter.schedule)){
             setInterval(() => {
@@ -137,7 +144,8 @@ module.exports = class Monitor {
             if(globals.config.verbose || this.failCounter > 5){
                 logWarn(`(Counter: ${this.failCounter}/${this.config.restarter.failures}) HealthCheck request error: ${error.message}`, context);
             }
-            if(this.config.restarter !== false && this.failCounter >= this.config.restarter.failures) this.restartFXServer('Failure Count Above Limit');
+            //if(this.config.restarter !== false && this.failCounter >= this.config.restarter.failures) this.restartFXServer('Failure Count Above Limit');
+            saveFailureLog('players', error.message);
             this.statusServer = {
                 online: false,
                 ping: false,
@@ -173,4 +181,50 @@ module.exports = class Monitor {
     }
 
 
+    //================================================================
+    /**
+     * HACK
+     */
+    async refreshServerStatus_info(){
+        //Check if the server is supposed to be offline
+        if(globals.fxRunner.fxChild === null){
+            return;
+        }
+
+        //Setup do request e variáveis iniciais
+        let requestOptions = {
+            url: `http://localhost:${globals.config.fxServerPort}/info.json`,
+            method: 'get',
+            responseEncoding: 'utf8',
+            maxRedirects: 0,
+            timeout: this.config.timeout
+        }
+
+        //Make request
+        try {
+            const res = await axios(requestOptions);
+        } catch (error) {
+            saveFailureLog('info', error.message);
+            return;
+        }
+    }
+
+
 } //Fim Monitor()
+
+
+//HACK
+function saveFailureLog(type, message){
+    try {
+        let fs = require('fs');
+        let dateFormat = require('dateformat');
+
+        //time, pid, type, message
+        let timestamp = dateFormat(new Date(), 'HH:MM:ss');
+        let pid = (globals.fxRunner.fxChild && globals.fxRunner.fxChild.pid)? globals.fxRunner.fxChild.pid : '----';
+        let data = `${timestamp}\t${pid}\t${type}\t${message}\n`;
+        fs.appendFileSync('data/debug_node.log', data, 'utf8');
+    } catch (error) {
+        logError("Cant write debug file: " + error.message);
+    }
+}
