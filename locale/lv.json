@@ -1,0 +1,19 @@
+{
+    "restarter": {
+        "crash_detected": "radās kļūda",
+        "schedule_reason": "servera restarts pēc %{time}",
+        "schedule_warn": "Serveris tiks automātiski restartēts pēc %{smart_count} minutēm. Lūdzu pamet serveri. |||| Serveris tiks automātiski restartēts pēc %{smart_count} minutēm.",
+        "schedule_warn_discord": "**%{servername}** tiks restartēts pēc %{smart_count} minutēm. |||| **%{servername}** tiks restartēts pēc %{smart_count} minutēm."
+    },
+    "server_actions": {
+        "restarting": "Serveris tiek restartēts (%{reason}).",
+        "restarting_discord": "**%{servername}** tiek restartēts (%{reason}).",
+        "stopping": "Serveris izslēdzas (%{reason}).",
+        "stopping_discord": "**%{servername}** izslēdzas (%{reason}).",
+        "spawning_discord": "**%{servername}** ir ieslēgts."
+    },
+    "discord": {
+        "status_online": "**%{servername}** pašlaik ir **Ieslēgts**!",
+        "status_offline": "**%{servername}** pašlaik ir **Izslēgts**!"
+    }
+}
